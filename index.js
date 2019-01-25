@@ -1,5 +1,6 @@
 // Sonoff-Tasmota Switch/Outlet Accessory plugin for HomeBridge
-// Jaromir Kopp @MacWyznawca
+// Original - Jaromir Kopp @MacWyznawca
+// 2 Way - Dirko Swanepoel @dirkoswanepoel
 
 'use strict';
 
@@ -10,10 +11,10 @@ module.exports = function(homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 
-	homebridge.registerAccessory("homebridge-mqtt-switch-tasmota", "mqtt-switch-tasmota", MqttSwitchTasmotaAccessory);
+	homebridge.registerAccessory("homebridge-mqtt-2way-switch-tasmota", "mqtt-2way-switch-tasmota", Mqtt2WaySwitchTasmotaAccessory);
 }
 
-function MqttSwitchTasmotaAccessory(log, config) {
+function Mqtt2WaySwitchTasmotaAccessory(log, config) {
 	this.log = log;
 
 	this.url = config["url"];
@@ -43,7 +44,7 @@ function MqttSwitchTasmotaAccessory(log, config) {
 
 	this.topicStatusGet = config["topics"].statusGet;
 	this.topicStatusSet = config["topics"].statusSet;
-	this.topicsStateGet = (config["topics"].stateGet !== undefined) ? config["topics"].stateGet : "";
+	this.topicStateGet = (config["topics"].stateGet !== undefined) ? config["topics"].stateGet : "";
 
 	this.onValue = (config["onValue"] !== undefined) ? config["onValue"] : "ON";
 	this.offValue = (config["offValue"] !== undefined) ? config["offValue"] : "OFF";
@@ -125,7 +126,7 @@ function MqttSwitchTasmotaAccessory(log, config) {
 			that.service.getCharacteristic(Characteristic.On).setValue(that.switchStatus, undefined, 'fromSetValue');
 		}
 
-		if (topic == that.topicsStateGet) {
+		if (topic == that.topicStateGet) {
 			try {
 				var data = JSON.parse(message);
 				if (data.hasOwnProperty(that.powerValue)) {
@@ -142,8 +143,8 @@ function MqttSwitchTasmotaAccessory(log, config) {
 		}
 	});
 	this.client.subscribe(this.topicStatusGet);
-	if (this.topicsStateGet !== "") {
-		this.client.subscribe(this.topicsStateGet);
+	if (this.topicStateGet !== "") {
+		this.client.subscribe(this.topicStateGet);
 	}
 	if (this.activityTopic !== "") {
 		this.client.subscribe(this.activityTopic);
